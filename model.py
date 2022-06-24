@@ -47,8 +47,11 @@ class VQVAE(nn.Module):
 
         quant_t = self.quantize_conv_t(enc_t)
         diff_t, quant_t, id_t = self.quantize_t(quant_t)
-        print(quant_t)
-        quant_t[:,0,0,0] = self.quantize_t.embed_code(label)
+        print(quant_t.shape)
+        emb = self.quantize_t.embed_code(label)
+        print(emb.shape)
+        print(quant_t[:,0,0,0].shape)
+        quant_t[:,0,0,0] = emb
 
         dec_t = self.dec_t(quant_t)
         enc_b = torch.cat([dec_t, enc_b], 1)
