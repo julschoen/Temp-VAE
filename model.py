@@ -50,8 +50,8 @@ class VQVAE(nn.Module):
         print(quant_t.shape)
         emb = self.quantize_t.embed_code(label)
         print(emb.shape)
-        print(quant_t[:,0,0,0].shape)
-        quant_t[:,0,0,0] = emb
+        print(quant_t[:,:,0,0,0].shape)
+        quant_t[:,:,0,0,0] = emb.squeeze()
 
         dec_t = self.dec_t(quant_t)
         enc_b = torch.cat([dec_t, enc_b], 1)
