@@ -47,7 +47,7 @@ class VQVAE(nn.Module):
 
         quant_t = self.quantize_conv_t(enc_t)
         diff_t, quant_t, id_t = self.quantize_t(quant_t)
-
+        print(quant_t)
         quant_t[:,0,0,0] = self.quantize_t.embed_code(label)
 
         dec_t = self.dec_t(quant_t)
