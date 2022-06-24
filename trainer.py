@@ -135,7 +135,7 @@ class Trainer(object):
             l = [[],[]]
             for x, y in self.val_data:
                 x = x.unsqueeze(1).to(self.p.device)
-                y.to(self.p.device)
+                y = y.to(self.p.device)
                 rec, (commitment_loss, _, _) = self.model(x, y)
                 rec = torch.tanh(rec)
 
