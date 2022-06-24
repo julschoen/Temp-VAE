@@ -16,7 +16,7 @@ class DATA(Dataset):
   def __getitem__(self, index):
     image = self.data[index]
     image = np.clip(image, -1,1)
-    image, label = self.__shift__(x)
+    image, label = self.__shift__(image)
     return torch.from_numpy(image).float(), torch.Tensor([label]).float()
 
   def __len__(self):
