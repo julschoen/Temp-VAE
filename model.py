@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from utils import Encoder, Decoder, Quantizer, MyQuantize
+from utils import Encoder, Decoder, Quantizer
 
 class VQVAE(nn.Module):
     def __init__(self, params, decay=0.99,):
