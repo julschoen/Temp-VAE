@@ -36,7 +36,7 @@ class VQVAE(nn.Module):
             stride=4
         )
 
-    def forward(self, input label):
+    def forward(self, input, label):
         quant_t, quant_b, diff, _, _ = self.encode(input, label)
         dec = self.decode(quant_t, quant_b)
         return dec, (diff, quant_t, quant_b)
