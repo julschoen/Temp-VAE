@@ -52,7 +52,7 @@ def eval(params):
 				ssims.append(s)
 				psnrs.append(p)
 				fids.append(f)
-				fa, fc, fs = fid(x1, x2, params.device)
+				fa, fc, fs = 0,0,0#fid(x1, x2, params.device)
 				fids_ax.append(fa)
 				fids_cor.append(fc)
 				fids_sag.append(fs)
