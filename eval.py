@@ -7,28 +7,23 @@ import torch.nn as nn
 from torch.cuda.amp import autocast
 
 from eval_utils import *
-from model import Discriminator, Generator
-from biggan import Discriminator as BigD
-from biggan import Generator as BigG
+from model import VQVAE
 from data_handler import DATA
 
 def load_gen(path, ngpu):
 	with open(os.path.join(path, 'params.pkl'), 'rb') as file:
 		params = pickle.load(file)
-	if params.hybrid or params.biggan:
-		netG = BigG(params)
-	else:
-		netG = Generator(params)
-
+	
+	model = VQVAE(params)
 	if ngpu > 1:
-		netG = nn.DataParallel(netG)
+		model = nn.DataParallel(model)
 	state = torch.load(os.path.join(path, 'models/checkpoint.pt'))
-	netG.load_state_dict(state['modelG_state_dict'])
+	model.load_state_dict(state['model'])
 
-	return netG
+	return model
 
 def eval(params):
-	dataset = DATA(path=params.data_path)
+	dataset = DATA(path=params.data_path, shift=False)
 	print(dataset.__len__())
 	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
 	fid_model = get_fid_model(params.fid_checkpoint).to(params.device)
@@ -37,7 +32,7 @@ def eval(params):
 	os.makedirs(params.log_dir, exist_ok=True)
 	for model_path in params.model_log:
 		print(model_path)
-		netG = load_gen(model_path, params.ngpu).to(params.device)
+		model = load_gen(model_path, params.ngpu).to(params.device)
 		ssims = []
 		psnrs = []
 		fids = []
@@ -48,15 +43,10 @@ def eval(params):
 		large_fake = None
 		with torch.no_grad():
 			with autocast():
-				for i, data in enumerate(generator):
-					x1 = data.unsqueeze(dim=1)
-					if params.ngpu > 1:
-						noise = torch.randn(data.shape[0], netG.module.dim_z,
-								1, 1, 1, dtype=torch.float, device=params.device)
-					else:
-						noise = torch.randn(data.shape[0], netG.dim_z,
-								1, 1, 1, dtype=torch.float, device=params.device)
-					x2 = netG(noise)
+				for i, (data,y) in enumerate(generator):
+					x1 = data.unsqueeze(dim=1).to(params.device)
+					y = y.to(params.device)
+					x2, (commitment_loss, _, _) = model(x1, y)
 					if i % 16 == 0 and i>0:
 						s,p,f = ssim(large_data,large_fake), psnr(large_data,large_fake),fid_3d(fid_model, large_data, large_fake)
 						ssims.append(s)
@@ -93,6 +83,32 @@ def eval(params):
 		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_stats.npz'),
 			ssim = ssims, psnr = psnrs, fid = fids, fid_ax=fids_ax, fid_cor=fids_cor, fid_sag=fids_sag)
 
+def gen_img(params):
+	dataset = DATA(path=params.data_path, shift=False)
+	print(dataset.__len__())
+	generator = DataLoader(dataset, batch_size=params.batch_size, shuffle=True, num_workers=4)
+	os.makedirs(params.log_dir, exist_ok=True)
+	for model_path in params.model_log:
+		print(model_path)
+		model = load_gen(model_path, params.ngpu).to(params.device)
+		with torch.no_grad():
+			for i, (data,y) in enumerate(generator):
+				x1 = data.unsqueeze(dim=1).to(params.device)
+				shifts = torch.arange(9).repeat(params.batch_size).reshape(params.batch_size, -1).transpose(0,1).to(params.device)
+				im = None
+				for y in shifts:
+					im1, _ = model(x1,y)
+					if im is None:
+						im = im1.reshape(-1,1,128,128,128)
+					else:
+						im = torch.concat((im, im1.reshape(-1,1,128,128,128)), dim=1)
+				break
+		
+		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_temp.npz'),x=im.detach().cpu().numpy())
+		np.savez_compressed(os.path.join(params.log_dir,f'{model_path}_temp_real.npz'),x=x1.detach().cpu().numpy())
+		
+
+
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
@@ -104,6 +120,7 @@ def main():
 	parser.add_argument('--fid_checkpoint', type=str, default='resnet_50.pth', help='Path to pretrained MedNet')
 	params = parser.parse_args()
 	eval(params)
+	gen_img(params)
 
 if __name__ == '__main__':
 	main()
