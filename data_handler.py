@@ -21,7 +21,7 @@ class DATA(Dataset):
     if self.shift:
       shifted, label = self.__shift__(image)
     else:
-      shifted = np.zeros_like(image)
+      shifted = image.copy()
       label = 0
     return torch.from_numpy(image).float(), torch.from_numpy(shifted).float(), torch.Tensor([label]).int()
 
