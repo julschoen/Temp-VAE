@@ -13,7 +13,7 @@ class DATA(Dataset):
   def __shift__(self, x):
     ind = np.random.choice(range(len(self.shifts)))
     x1 = np.pad(x, [[0,0],[0, 0],[self.shifts[ind],0]], constant_values=-1)[:,:,:128]
-    return x1, ind‚
+    return x1, ind
 
   def __getitem__(self, index):
     image = self.data[index]
