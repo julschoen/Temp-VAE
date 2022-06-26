@@ -209,7 +209,8 @@ class Decoder(nn.Module):
             )
 
         self.blocks = nn.Sequential(*blocks)
+        self.act = nn.Tanh()
 
     def forward(self, input):
-        return self.blocks(input)
+        return self.act(self.blocks(input))
         
