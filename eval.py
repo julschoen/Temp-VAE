@@ -48,7 +48,7 @@ def eval(params):
 				x2, _ = model(x1, y)
 				x1 = torch.nan_to_num(x1, nan=0.0, posinf=1, neginf=-1)
 				x2 = torch.nan_to_num(x2, nan=0.0, posinf=1, neginf=-1)
-				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1.cpu(), x2.cpu())
+				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),0#,fid_3d(fid_model, x1.cpu(), x2.cpu())
 				ssims.append(s)
 				psnrs.append(p)
 				fids.append(f)
