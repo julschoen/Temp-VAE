@@ -42,19 +42,18 @@ def eval(params):
 		large_data = None
 		large_fake = None
 		with torch.no_grad():
-			with autocast():
-				for i, (data,y) in enumerate(generator):
-					x1 = data.unsqueeze(dim=1).to(params.device)
-					y = y.to(params.device)
-					x2, (commitment_loss, _, _) = model(x1, y)
-					s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1.cpu(), x2.cpu())
-					ssims.append(s)
-					psnrs.append(p)
-					fids.append(f)
-					fa, fc, fs = fid(x1, x2, params.device)
-					fids_ax.append(fa)
-					fids_cor.append(fc)
-					fids_sag.append(fs)
+			for i, (data,y) in enumerate(generator):
+				x1 = data.unsqueeze(dim=1).to(params.device)
+				y = y.to(params.device)
+				x2, (commitment_loss, _, _) = model(x1, y)
+				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1.cpu(), x2.cpu())
+				ssims.append(s)
+				psnrs.append(p)
+				fids.append(f)
+				fa, fc, fs = fid(x1, x2, params.device)
+				fids_ax.append(fa)
+				fids_cor.append(fc)
+				fids_sag.append(fs)
 			
 		ssims = np.array(ssims)
 		psnrs = np.array(psnrs)
