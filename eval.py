@@ -46,7 +46,7 @@ def eval(params):
 				x1 = data.unsqueeze(dim=1).to(params.device)
 				y = y.to(params.device)
 				x2, _ = model(x1, y)
-				x2 = torch.tanh(x2)
+
 				s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1.cpu(), x2.cpu())
 				ssims.append(s)
 				psnrs.append(p)
