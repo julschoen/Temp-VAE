@@ -86,6 +86,7 @@ def gen_img(params):
 				im = None
 				for y in shifts:
 					im1, _ = model(x1,y)
+					im1 = torch.tanh(im1)
 					if im is None:
 						im = im1.reshape(-1,1,128,128,128)
 					else:
