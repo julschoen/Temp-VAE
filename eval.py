@@ -47,27 +47,15 @@ def eval(params):
 					x1 = data.unsqueeze(dim=1).to(params.device)
 					y = y.to(params.device)
 					x2, (commitment_loss, _, _) = model(x1, y)
-					if i % 16 == 0 and i>0:
-						s,p,f = ssim(large_data,large_fake), psnr(large_data,large_fake),fid_3d(fid_model, large_data, large_fake)
-						ssims.append(s)
-						psnrs.append(p)
-						fids.append(f)
-						large_data = None
-						large_fake = None
-					else:
-						if large_data is not None and large_fake is not None:
-							large_data = torch.concat((large_data, x1.cpu()))
-							large_fake = torch.concat((large_fake, x2.cpu()))
-						else:
-							large_data = x1.cpu()
-							large_fake = x2.cpu()
-					if i%5 == 0:
-						fa, fc, fs = fid(x1, x2, params.device)
-						fids_ax.append(fa)
-						fids_cor.append(fc)
-						fids_sag.append(fs)
+					s,p,f = ssim(x1.cpu(),x2.cpu()), psnr(x1.cpu(),x2.cpu()),fid_3d(fid_model, x1.cpu(), x2.cpu())
+					ssims.append(s)
+					psnrs.append(p)
+					fids.append(f)
+					fa, fc, fs = fid(x1, x2, params.device)
+					fids_ax.append(fa)
+					fids_cor.append(fc)
+					fids_sag.append(fs)
 			
-
 		ssims = np.array(ssims)
 		psnrs = np.array(psnrs)
 		fids = np.array(fids)
