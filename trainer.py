@@ -148,7 +148,7 @@ class Trainer(object):
 
         self.val_losses.append(tuple(np.mean(l, axis=1)))
 
-    def train_step(self, x, y):
+    def train_step(self, x, x_, y):
         for p in self.model.parameters():
             p.requires_grad = True
 
@@ -157,7 +157,7 @@ class Trainer(object):
         rec, (commitment_loss, q,_) = self.model(x, y)
         rec = torch.tanh(rec)
 
-        rec_loss = torch.log(self.loss(rec, x))
+        rec_loss = torch.log(self.loss(rec, x_))
         commitment_loss = commitment_loss.mean()
 
         loss = rec_loss + commitment_loss
@@ -177,17 +177,18 @@ class Trainer(object):
 
         print("Starting Training...")
         for i in range(step_done, self.p.niters):
-            data, y = next(gen)
-            data = data.unsqueeze(1).to(self.p.device)
+            x, x_shifted, y = next(gen)
+            x = x.unsqueeze(1).to(self.p.device)
+            x_shifted = x_shifted.unsqueeze(1).to(self.p.device)
             y = y.to(self.p.device)
-            rec, rec_loss, commitment_loss = self.train_step(data, y)
+            rec, rec_loss, commitment_loss = self.train_step(x, x_shifted, y)
             self.losses.append((rec_loss, commitment_loss))
 
-            self.log(i, data, rec)
+            self.log(i, x_shifted, rec)
             if i%100 == 0 and i>0:
                 self.fid_epoch.append(np.array(self.fid).mean())
                 self.fid = []
                 self.save_checkpoint(i)
         
-        self.log_final(i, data, rec)
+        self.log_final(i, x_shifted, rec)
         print('...Done')

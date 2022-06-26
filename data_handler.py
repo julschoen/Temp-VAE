@@ -19,10 +19,10 @@ class DATA(Dataset):
     image = self.data[index]
     image = np.clip(image, -1,1)
     if self.shift:
-      image, label = self.__shift__(image)
+      shifted, label = self.__shift__(image)
     else:
       label = 0
-    return torch.from_numpy(image).float(), torch.Tensor([label]).int()
+    return torch.from_numpy(image).float(), torch.from_numpy(shifted).float(), torch.Tensor([label]).int()
 
   def __len__(self):
     return self.len
