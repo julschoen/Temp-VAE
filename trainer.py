@@ -133,13 +133,13 @@ class Trainer(object):
     def val_step(self):
         with torch.no_grad():
             l = [[],[]]
-            for x, y in self.val_data:
+            for x, x_, y in self.val_data:
                 x = x.unsqueeze(1).to(self.p.device)
+                x_ = x_.unsqueeze(1).to(self.p.device)
                 y = y.to(self.p.device)
                 rec, (commitment_loss, _, _) = self.model(x, y)
-                rec = torch.tanh(rec)
 
-                rec_loss = torch.log(self.loss(rec, x))
+                rec_loss = torch.log(self.loss(rec, x_))
                 commitment_loss = commitment_loss.mean()
 
                 l[0].append(rec_loss.item())
@@ -155,7 +155,6 @@ class Trainer(object):
         self.model.zero_grad()
         
         rec, (commitment_loss, q,_) = self.model(x, y)
-        rec = torch.tanh(rec)
 
         rec_loss = torch.log(self.loss(rec, x_))
         commitment_loss = commitment_loss.mean()
