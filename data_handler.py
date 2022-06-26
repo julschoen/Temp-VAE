@@ -18,7 +18,7 @@ class DATA(Dataset):
   def __getitem__(self, index):
     image = self.data[index]
     image = np.clip(image, -1,1)
-    if shift:
+    if self.shift:
       image, label = self.__shift__(image)
     else:
       label = 0
